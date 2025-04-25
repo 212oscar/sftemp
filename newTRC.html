@@ -205,63 +205,60 @@
             }
         }
 
-
-    // Load the Google API client
-    async function loadGAPI() {
-        return new Promise((resolve, reject) => {
-            gapi.load('client', async () => {
-                try {
-                    await gapi.client.init({
-                        apiKey: 'YOUR_API_KEY', // Optional if using OAuth tokens for authentication
-                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-                    });
-                    resolve();
-                } catch (error) {
-                    console.error('Error initializing gapi client:', error);
-                    reject(error);
-                }
+        // Load the Google API client
+        async function loadGAPI() {
+            return new Promise((resolve, reject) => {
+                gapi.load('client', async () => {
+                    try {
+                        await gapi.client.init({
+                            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                        });
+                        resolve();
+                    } catch (error) {
+                        console.error('Error initializing gapi client:', error);
+                        reject(error);
+                    }
+                });
             });
-        });
-    }
-
+        }
 
         // Create TRC
         async function createTRC() {
-    await loadGAPI(); // Ensure gapi.client is loaded
-    const params = new URLSearchParams(window.location.search);
-    const productTitle = params.get('productTitle');
-    const caseNumber = params.get('caseNumber');
-    const sheetID = params.get('sheetID');
-    const folderId = params.get('folderId');
+            await loadGAPI(); // Ensure gapi.client is loaded
+            const params = new URLSearchParams(window.location.search);
+            const productTitle = params.get('productTitle');
+            const caseNumber = params.get('caseNumber');
+            const sheetID = params.get('sheetID');
+            const folderId = params.get('folderId');
 
-    try {
-        const response = await gapi.client.request({
-            path: `/drive/v3/files/${sheetID}/copy`,
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-            body: {
-                name: `${productTitle} ${caseNumber}`,
-                parents: [folderId],
-            },
-        });
+            try {
+                const response = await gapi.client.request({
+                    path: `/drive/v3/files/${sheetID}/copy`,
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    body: {
+                        name: `${productTitle} ${caseNumber}`,
+                        parents: [folderId],
+                    },
+                });
 
-        if (response.result && response.result.id) {
-            const newSheetId = response.result.id;
-            const newSheetUrl = `https://docs.google.com/spreadsheets/d/${newSheetId}/edit`;
-            window.location.href = newSheetUrl;
-        } else {
-            throw new Error('Failed to copy the Google Sheet');
+                if (response.result && response.result.id) {
+                    const newSheetId = response.result.id;
+                    const newSheetUrl = `https://docs.google.com/spreadsheets/d/${newSheetId}/edit`;
+                    window.location.href = newSheetUrl;
+                } else {
+                    throw new Error('Failed to copy the Google Sheet');
+                }
+            } catch (error) {
+                console.error('Error creating TRC:', error);
+                alert('Failed to create TRC document. Please check your permissions or try logging in again.');
+            }
         }
-    } catch (error) {
-        console.error('Error creating TRC:', error);
-        alert('Failed to create TRC document. Please check your permissions or try logging in again.');
-    }
-}
 
-// Display productTitle and caseNumber
-function displayParams() {
+        // Display productTitle and caseNumber
+        function displayParams() {
             const params = new URLSearchParams(window.location.search);
             const productTitle = params.get('productTitle');
             const caseNumber = params.get('caseNumber');
@@ -271,18 +268,17 @@ function displayParams() {
 
         // Initialize the app
         window.onload = async () => {
-    document.body.style.visibility = 'visible';
-    displayParams();
-    try {
-        await loadGAPI(); // Load the Google API client
-        checkLoginStatus(); // Check login status
-    } catch (error) {
-        console.error('Error loading GAPI:', error);
-        alert('Failed to load Google API. Please refresh the page.');
-    }
-    initCodeClient(); // Initialize the code client for login
-};
-
+            document.body.style.visibility = 'visible';
+            displayParams();
+            try {
+                await loadGAPI(); // Load the Google API client
+                checkLoginStatus(); // Check login status
+            } catch (error) {
+                console.error('Error loading GAPI:', error);
+                alert('Failed to load Google API. Please refresh the page.');
+            }
+            initCodeClient(); // Initialize the code client for login
+        };
     </script>
 </head>
 <body>
